@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Puzzle Incentive</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+<body>
+  <h2>🧩 Solve the Puzzle</h2>
+  <p>Question: What is that thing which is always coming but never arrives?</p>
+  <input type="text" id="answerInput" placeholder="Enter your answer">
+  <button onclick="submitAnswer()">Submit Answer</button>
+
+  <p id="result"></p>
+
+  <script>
+    const contractAddress = "0x788B5D8d0Df38f7084cf112AF145BBc1e1A38238";
+    const abi = [
+      "function submitAnswer(string memory _answer) public",
+      "function getPot() public view returns (uint)",
+      "function winner() public view returns (address)",
+      "function claimed() public view returns (bool)"
+    ];
+
+    async function submitAnswer() {
+      const answer = document.getElementById("answerInput").value;
+
+      if (!window.ethereum) {
+        alert("Please install MetaMask to interact with the contract.");
+        return;
+      }
+
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(contractAddress, abi, signer);
+
+      try {
+        const tx = await contract.submitAnswer(answer);
+        document.getElementById("result").innerText = "Transaction sent... waiting for confirmation.";
+        await tx.wait();
+        document.getElementById("result").innerText = "✅ Answer submitted!";
+      } catch (err) {
+        console.error(err);
+        document.getElementById("result").innerText = "❌ Error submitting answer.";
+      }
+    }
+  </script>
+</body>
+</html>
